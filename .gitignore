@@ -1,0 +1,5 @@
+# Venv
+.teu-env
+
+#django 
+db.sqlite3
