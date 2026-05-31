@@ -5,13 +5,10 @@ Godina: 2026
 
 ## Opis projekta
 
-Aplikacija prikazuje dva skupa otvorenih podataka Srbije:
-- **Mapa**: Saobraćajne nesreće sa poginulima (koordinate)
-- **Grafikoni**: Broj stanovnika po opštinama (Popis 2022)
+Aplikacija prikazuje dva skupa otvorenih podataka Srbije.
 
 Korišćene tehnologije:
-- Django (Python framework)
-- leaflet (interaktivne mape)
+- **Django** (Python framework)
 
 ## Kako pokrenuti aplikaciju
 
