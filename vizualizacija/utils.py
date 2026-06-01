@@ -45,14 +45,12 @@ def generateMap():
     folium.TileLayer("cartodbdark_matter", name="Tamna podloga", show=False).add_to(
         mapa
     )
-
     folium.TileLayer(
         tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         attr="Esri",
         name="Esri Satelit",
         show=False,
     ).add_to(mapa)
-
     folium.TileLayer(
         tiles="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
         attr="Cyclosm",

@@ -19,7 +19,7 @@ def saobracaj(request):
 
     mapa = generateMap()
     addMarkers(mapa, df)
-
+    print(df)
     folium.LayerControl(position="topleft").add_to(mapa)
     mapHtml = mapa._repr_html_()
 
