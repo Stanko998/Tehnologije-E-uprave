@@ -1,7 +1,30 @@
-{% extends 'vizualizacija/base.html'%}
-
-{% block title%} Saobracaj{% endblock%}
-
+{% extends 'vizualizacija/base.html'%} {% block title%} Saobracaj{% endblock%}
 {% block page%}
-<h1>Saobracaj</h1>
+<h2>Saobraćajne nesreće</h2>
+
+<form method="get" action="{% url 'saobracaj' %}">
+  <label for="godinaOd">od godine:</label>
+  <input
+    type="number"
+    name="godinaOd"
+    id="godinaOd"
+    value="{{ godinaOd }}"
+    min="2015"
+    max="2026"
+  />
+
+  <label for="godinaDo">od godine:</label>
+  <input
+    type="number"
+    name="godinaDo"
+    id="godinaDo"
+    value="{{ godinaDo }}"
+    min="2015"
+    max="2026"
+  />
+  <button type="submit">Prikaži</button>
+</form>
+
+<div id="mapa">{{ mapHtml|safe }}</div>
+
 {% endblock%}

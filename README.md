@@ -7,8 +7,8 @@ Godina: 2026
 
 Aplikacija prikazuje dva skupa otvorenih podataka Srbije:
 
-- Podaci o saobraćajnim nezgodama po policijskim upravama i opštinama
-- Podaci o osnovnim školama
+- Podaci o saobraćajnim nezgodama po policijskim upravama i opštinama (https://data.gov.rs/sr/datasets/podatsi-o-saobratshajnim-nezgodama-po-politsijskim-upravama-i-opshtinama)
+- Podaci o osnovnim školama (https://data.gov.rs/sr/datasets/moja-srednja-shkola)
 
 Korišćene tehnologije:
 
