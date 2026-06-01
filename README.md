@@ -5,7 +5,9 @@ Godina: 2026
 
 ## Opis projekta
 
-Aplikacija prikazuje dva skupa otvorenih podataka Srbije.
+Aplikacija prikazuje dva skupa otvorenih podataka Srbije:
+- Podaci o saobraćajnim nezgodama po policijskim upravama i opštinama
+- Podaci o osnovnim školama 
 
 Korišćene tehnologije:
 - **Django** (Python framework)
