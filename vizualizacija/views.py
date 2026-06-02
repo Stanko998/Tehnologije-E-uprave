@@ -1,7 +1,6 @@
 from django.shortcuts import render
-from .utils import ucitajSaobracaj, generateMap, addMarkers
-import folium
-from folium.plugins import MarkerCluster
+from django.http import JsonResponse
+from .utils import ucitajSaobracaj
 
 
 def home(request):
@@ -9,6 +8,26 @@ def home(request):
 
 
 def saobracaj(request):
+    # TODO ukloniti komentar
+    # godinaOd = int(request.GET.get("godinaOd", "2015"))
+    # godinaDo = int(request.GET.get("godinaDo", "2015"))
+
+    # if godinaOd > godinaDo:
+    #     godinaOd, godinaDo = godinaDo, godinaOd
+
+    # df = ucitajSaobracaj(godinaOd, godinaDo)
+
+    # mapa = generateMap()
+    # addMarkers(mapa, df)
+    # print(df)
+    # folium.LayerControl(position="topleft").add_to(mapa)
+    # mapHtml = mapa._repr_html_()
+
+    context = {"godinaOd": 2015, "godinaDo": 2015}
+    return render(request, "vizualizacija/saobracaj.html", context)
+
+
+def saobracajApi(request):
     godinaOd = int(request.GET.get("godinaOd", "2015"))
     godinaDo = int(request.GET.get("godinaDo", "2015"))
 
@@ -17,14 +36,10 @@ def saobracaj(request):
 
     df = ucitajSaobracaj(godinaOd, godinaDo)
 
-    mapa = generateMap()
-    addMarkers(mapa, df)
-    print(df)
-    folium.LayerControl(position="topleft").add_to(mapa)
-    mapHtml = mapa._repr_html_()
-
-    context = {"mapHtml": mapHtml, "godinaOd": godinaOd, "godinaDo": godinaDo}
-    return render(request, "vizualizacija/saobracaj.html", context)
+    data = df[["latitude", "longitude", "tip_stete", "datum_vreme", "opstina"]].to_dict(
+        orient="records"
+    )
+    return JsonResponse(data, safe=False)
 
 
 def skole(request):

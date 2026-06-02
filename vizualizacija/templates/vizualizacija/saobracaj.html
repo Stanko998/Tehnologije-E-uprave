@@ -1,30 +1,39 @@
-{% extends 'vizualizacija/base.html'%} {% block title%} Saobracaj{% endblock%}
-{% block page%}
-<h2>Saobraćajne nesreće</h2>
+{% extends 'vizualizacija/base.html'%}
+{%load static%}
 
-<form method="get" action="{% url 'saobracaj' %}">
+{% block title%} Saobracaj{% endblock%}
+
+{%block style%}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+{%endblock%}
+
+{% block page%}
+<h2>Saobraćajne nesreće (2015-2026)</h2>
+
+<form id="forma">
   <label for="godinaOd">od godine:</label>
-  <input
-    type="number"
-    name="godinaOd"
-    id="godinaOd"
-    value="{{ godinaOd }}"
-    min="2015"
-    max="2026"
-  />
+  <input type="number" name="godinaOd" id="godinaOd" value="{{ godinaOd }}" min="2015" max="2026" />
 
   <label for="godinaDo">od godine:</label>
-  <input
-    type="number"
-    name="godinaDo"
-    id="godinaDo"
-    value="{{ godinaDo }}"
-    min="2015"
-    max="2026"
-  />
+  <input type="number" name="godinaDo" id="godinaDo" value="{{ godinaDo }}" min="2015" max="2026" />
+
   <button type="submit">Prikaži</button>
 </form>
 
-<div id="mapa">{{ mapHtml|safe }}</div>
-
+<div id="map"></div>
 {% endblock%}
+
+{% block scripts%}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!--moj js-->
+<script src="{% static 'js/saobracaj.js' %}"></script>
+{% endblock %}

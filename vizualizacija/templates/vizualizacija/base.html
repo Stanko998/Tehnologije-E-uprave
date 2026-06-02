@@ -1,21 +1,27 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title%} {% endblock%}</title>
-    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title%} {% endblock%}</title>
+  {%block style%} {%endblock%}
+  <link rel="stylesheet" href="{% static 'css/style.min.css' %}" /> 
 </head>
 
 <body>
-    {% include 'vizualizacija/parts/header.html'%}
 
-    {% block page%}
-    {% endblock %}
+  {% include 'vizualizacija/parts/header.html'%}
 
-    {% include 'vizualizacija/parts/footer.html'%}
+  {% block page%}
+  {% endblock %}
+
+  {% include 'vizualizacija/parts/footer.html'%}
+
+  {% block scripts%}
+  {% endblock %}
+  
 </body>
 
 </html>
