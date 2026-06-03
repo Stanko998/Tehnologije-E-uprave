@@ -1,7 +1,38 @@
 {% extends 'vizualizacija/base.html'%}
 
-{% block title%} e-uprava{% endblock%}
+{% block title%}Otvoreni podaci Srbije{% endblock%}
 
 {% block page%}
-<h1>test2</h1>
+<section class="hero">
+  <div class="hero-content">
+    <p class="eyebrow">Tehnologije e-uprave</p>
+    <h1>Pregled otvorenih podataka Srbije</h1>
+    <p>
+      Interaktivni prikaz saobra&#263;ajnih nezgoda i osnovnih &#353;kola, sa fokusom
+      na brzo filtriranje, mapu i podatke iz javnih CSV skupova.
+    </p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="{% url 'saobracaj'%}">Otvori mapu</a>
+      <a class="button button-secondary" href="{% url 'skole'%}">Pogledaj &#353;kole</a>
+    </div>
+  </div>
+</section>
+
+<section class="overview-grid">
+  <article class="overview-card">
+    <span>2015-2026</span>
+    <h2>Saobra&#263;ajne nezgode</h2>
+    <p>Podaci su organizovani po godinama, op&#353;tinama, koordinatama i tipu &#353;tete.</p>
+  </article>
+  <article class="overview-card">
+    <span>CSV podaci</span>
+    <h2>Osnovne &#353;kole</h2>
+    <p>Stranica je spremna za prikaz drugog javnog skupa podataka u istom vizuelnom sistemu.</p>
+  </article>
+  <article class="overview-card">
+    <span>Django + Pandas</span>
+    <h2>Backend obrada</h2>
+    <p>CSV fajlovi se u&#269;itavaju kroz Pandas, a API vra&#263;a samo polja potrebna mapi.</p>
+  </article>
+</section>
 {% endblock%}

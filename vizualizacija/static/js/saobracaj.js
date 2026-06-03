@@ -2,119 +2,104 @@
 /** @type {import('leaflet.markercluster')} */
 /** @type {import('leaflet.featuregroup.subgroup')} */
 
-var map = L.map('map').setView([44.0, 20.5], 7)
+const map = L.map("map", { preferCanvas: true }).setView([44.0, 20.5], 7);
+const statusEl = document.getElementById("status");
 
-var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
-var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}).addTo(map);
+
+const markers = L.markerClusterGroup({
+    chunkedLoading: true,
+    showCoverageOnHover: false,
 });
-
-
-var markers = L.markerClusterGroup({ chunkedLoading: true })
 map.addLayer(markers);
 
-var mapGroup = {
-    "OpenStreetMap": osm,
-    "OpenTopoMap": OpenTopoMap
+L.control.layers({ OpenStreetMap: osm }, { "Saobracajne nezgode": markers }, { position: "topleft" }).addTo(map);
+
+const buffer = {};
+
+setStatus("Izaberi period i klikni Prikazi.");
+
+loadData(2015, 2015)
+
+function setStatus(message) {
+    statusEl.textContent = message;
 }
-
-var grouopGroup = {
-    "saobracajne nesrece": markers
-}
-L.control.layers(mapGroup, grouopGroup, { position: 'topleft' }).addTo(map)
-
-var buffer = {};
-
-var pocetnaGodinaOd = parseInt(document.getElementById('godinaOd').value);
-var pocetnaGodinaDo = parseInt(document.getElementById('godinaDo').value);
-createIcon();
-loadData(pocetnaGodinaOd, pocetnaGodinaDo);
-
 
 function loadData(godinaOd, godinaDo) {
-    for (let godina = godinaOd; godina <= godinaDo; godina++) {
-        if (godina == 2024) continue; //BUG 2024 godina ne radi ima neki neobican problem
+    setStatus("Ucitavanje podataka...");
+
+    const requests = [];
+    for (let godina = godinaOd; godina <= godinaDo; godina += 1) {
         if (buffer[godina]) {
-            if (map.hasLayer(buffer[godina])) continue;
-            map.addLayer(buffer[godina]);
+            if (!map.hasLayer(buffer[godina])) {
+                map.addLayer(buffer[godina]);
+            }
             continue;
         }
 
         buffer[godina] = L.featureGroup.subGroup(markers);
-        fetch(`/api/saobracaj/?godinaOd=${godina}&godinaDo=${godina}`).then(response => response.json()).then(data => {
-            data.forEach(point => {
-                marker = L.marker([point.latitude, point.longitude], { icon: getIcon(point.tip_stete) })
-                marker.bindPopup(`
-                    <b>Datum:</b> ${point.datum_vreme}<br>
-                    <b>Opština:</b> ${point.opstina}<br>
-                    <b>Šteta:</b> ${point.tip_stete}
-                `);
-                buffer[godina].addLayer(marker);
-            });
+        requests.push(
+            fetch(`/api/saobracaj/?godinaOd=${godina}&godinaDo=${godina}`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Greska pri ucitavanju godine ${godina}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    data.forEach((point) => {
+                        const marker = L.circleMarker([point.latitude, point.longitude], getMarkerStyle(point.tip_stete));
+                        marker.bindPopup(`
+                            <b>Datum:</b> ${point.datum_vreme}<br>
+                            <b>Opstina:</b> ${point.opstina}<br>
+                            <b>Steta:</b> ${point.tip_stete}
+                        `);
+                        buffer[godina].addLayer(marker);
+                    });
 
-            map.addLayer(buffer[godina]);
-        })
+                    map.addLayer(buffer[godina]);
+                })
+        );
     }
+
+    Promise.all(requests)
+        .then(() => setStatus(`Prikazan period ${godinaOd}-${godinaDo}.`))
+        .catch((error) => setStatus(error.message));
 }
 
 function removeLayers(godinaOd, godinaDo) {
-    for (let i = 0; i <= Object.keys(buffer).length; i++) {
-        godina = parseInt(Object.keys(buffer)[i]);
+    Object.keys(buffer).forEach((key) => {
+        const godina = parseInt(key, 10);
         if (godina < godinaOd || godina > godinaDo) {
             map.removeLayer(buffer[godina]);
         }
-    }
+    });
 }
 
-document.getElementById('forma').addEventListener('submit', function (e) {
+document.getElementById("forma").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    var godinaOd = parseInt(document.getElementById('godinaOd').value);
-    var godinaDo = parseInt(document.getElementById('godinaDo').value);
+    let godinaOd = parseInt(document.getElementById("godinaOd").value, 10);
+    let godinaDo = parseInt(document.getElementById("godinaDo").value, 10);
 
     if (godinaOd > godinaDo) {
         [godinaOd, godinaDo] = [godinaDo, godinaOd];
     }
 
-    removeLayers(godinaOd, godinaDo)
+    removeLayers(godinaOd, godinaDo);
     loadData(godinaOd, godinaDo);
 });
 
-function createIcon() {
-    blueIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    orangeIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    redIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-}
-
-function getIcon(tip) {
-    if (tip == "Sa poginulim") {
-        return redIcon
-    } else if (tip == "Sa povredjenim") {
-        return orangeIcon
+function getMarkerStyle(tip) {
+    if (tip === "Sa poginulim") {
+        return { radius: 6, color: "#991b1b", fillColor: "#dc2626", fillOpacity: 0.82, weight: 1 };
     }
-    return blueIcon
+
+    if (tip === "Sa povredjenim") {
+        return { radius: 6, color: "#9a3412", fillColor: "#f97316", fillOpacity: 0.8, weight: 1 };
+    }
+
+    return { radius: 5, color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 0.76, weight: 1 };
 }
