@@ -8,21 +8,6 @@ def home(request):
 
 
 def saobracaj(request):
-    # TODO ukloniti komentar
-    # godinaOd = int(request.GET.get("godinaOd", "2015"))
-    # godinaDo = int(request.GET.get("godinaDo", "2015"))
-
-    # if godinaOd > godinaDo:
-    #     godinaOd, godinaDo = godinaDo, godinaOd
-
-    # df = ucitajSaobracaj(godinaOd, godinaDo)
-
-    # mapa = generateMap()
-    # addMarkers(mapa, df)
-    # print(df)
-    # folium.LayerControl(position="topleft").add_to(mapa)
-    # mapHtml = mapa._repr_html_()
-
     context = {"godinaOd": 2015, "godinaDo": 2015}
     return render(request, "vizualizacija/saobracaj.html", context)
 
@@ -35,7 +20,7 @@ def saobracajApi(request):
     if godinaOd > godinaDo:
         godinaOd, godinaDo = godinaDo, godinaOd
     df = ucitajSaobracaj(godinaOd, godinaDo)
-    print("pozvan je api za:", godinaOd, godinaDo)
+
     data = df[["latitude", "longitude", "tip_stete", "datum_vreme", "opstina"]].to_dict(
         orient="records"
     )
