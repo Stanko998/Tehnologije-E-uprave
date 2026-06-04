@@ -34,6 +34,7 @@ class VizualizacijaViewsTests(TestCase):
                 "vrsta_nezgode",
                 "datum_vreme",
                 "opstina",
+                "godina",
             },
         )
 

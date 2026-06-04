@@ -152,6 +152,7 @@ main {
 .overview-grid,
 .page-heading,
 .map-shell,
+.charts-section,
 .empty-state {
     width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
@@ -338,6 +339,47 @@ main {
     min-height: 460px;
 }
 
+.charts-section {
+    margin-bottom: 54px;
+}
+
+.section-title {
+    margin-bottom: 16px;
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.chart-card {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(23, 32, 51, 0.06);
+}
+
+.chart-card.is-hidden {
+    display: none;
+}
+
+.chart-card-wide {
+    grid-column: span 2;
+}
+
+.chart-container {
+    width: 100%;
+    min-height: 340px;
+    padding: 12px;
+}
+
 .empty-state {
     padding: 28px;
     margin-bottom: 54px;
@@ -377,6 +419,14 @@ main {
 
     .overview-grid {
         display: grid;
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card-wide {
+        grid-column: span 1;
     }
 
     .filter-bar,

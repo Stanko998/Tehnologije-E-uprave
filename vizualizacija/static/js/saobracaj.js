@@ -18,7 +18,22 @@ map.addLayer(markers);
 L.control.layers({ OpenStreetMap: osm }, { "Saobracajne nezgode": markers }, { position: "topleft" }).addTo(map);
 
 const buffer = {};
+const dataBuffer = {};
 const activeLayers = new Set();
+
+const damageLabels = {
+    "Sa mat.stetom": "Materijalna steta",
+    "Sa povredjenim": "Povredjeni",
+    "Sa poginulim": "Poginuli",
+};
+
+const damageColors = {
+    "Sa mat.stetom": "#3b82f6",
+    "Sa povredjenim": "#f97316",
+    "Sa poginulim": "#dc2626",
+};
+
+const monthLabels = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Avg", "Sep", "Okt", "Nov", "Dec"];
 
 loadInitialData();
 
@@ -57,6 +72,7 @@ function loadData(godinaOd, godinaDo, filters) {
                     return response.json();
                 })
                 .then((data) => {
+                    dataBuffer[cacheKey] = data;
                     data.forEach((point) => {
                         const marker = L.circleMarker([point.latitude, point.longitude], getMarkerStyle(point.tip_stete));
                         marker.bindPopup(`
@@ -76,8 +92,10 @@ function loadData(godinaOd, godinaDo, filters) {
 
     Promise.all(requests)
         .then(() => {
+            const visibleData = getActiveData();
             fitMapToActiveLayers();
-            setStatus(`Prikazan period ${godinaOd}-${godinaDo}.`);
+            renderCharts(visibleData);
+            setStatus(`Prikazan period ${godinaOd}-${godinaDo}. Broj nezgoda: ${visibleData.length}.`);
         })
         .catch((error) => setStatus(error.message));
 }
@@ -116,6 +134,10 @@ function removeActiveLayers() {
     activeLayers.clear();
 }
 
+function getActiveData() {
+    return Array.from(activeLayers).flatMap((key) => dataBuffer[key] || []);
+}
+
 function fitMapToActiveLayers() {
     const bounds = L.latLngBounds([]);
 
@@ -144,6 +166,7 @@ document.getElementById("forma").addEventListener("submit", function (e) {
 
     if (getFilters().tipoviStete.length === 0) {
         removeActiveLayers();
+        renderCharts([]);
         setStatus("Izaberi bar jedan tip stete.");
         return;
     }
@@ -162,4 +185,157 @@ function getMarkerStyle(tip) {
     }
 
     return { radius: 5, color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 0.76, weight: 1 };
+}
+
+function renderCharts(data) {
+    if (!window.Highcharts) {
+        return;
+    }
+
+    renderYearTrend(data);
+    renderDamageTypeChart(data);
+    renderAccidentTypeChart(data);
+    renderMunicipalityChart(data);
+}
+
+function renderYearTrend(data) {
+    const years = Array.from(new Set(data.map((item) => Number(item.godina))))
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+    const counts = countByYearAndMonth(data);
+
+    Highcharts.chart("chart-godine", {
+        chart: { type: "column", backgroundColor: "transparent" },
+        title: { text: "Broj nezgoda po mesecima" },
+        xAxis: { categories: monthLabels, title: { text: null } },
+        yAxis: { title: { text: "Broj nezgoda" }, allowDecimals: false },
+        legend: { enabled: years.length > 1 },
+        credits: { enabled: false },
+        plotOptions: { column: { borderRadius: 4 } },
+        series: years.map((year) => ({
+            name: String(year),
+            data: monthLabels.map((_, index) => counts[year]?.[index + 1] || 0),
+        })),
+    });
+}
+
+function renderDamageTypeChart(data) {
+    const selectedTypes = getFilters().tipoviStete;
+    const isVisible = selectedTypes.length > 1;
+    setChartVisible("chart-tip-stete", isVisible);
+    setChartWide("chart-vrsta", !isVisible);
+
+    if (!isVisible) {
+        return;
+    }
+
+    const counts = countBy(data, "tip_stete");
+
+    Highcharts.chart("chart-tip-stete", {
+        chart: { type: "column", backgroundColor: "transparent" },
+        title: { text: "Nezgode po tipu stete" },
+        xAxis: { categories: selectedTypes.map((tip) => damageLabels[tip] || tip), title: { text: null } },
+        yAxis: { title: { text: "Broj nezgoda" }, allowDecimals: false },
+        legend: { enabled: false },
+        credits: { enabled: false },
+        plotOptions: { column: { borderRadius: 4 } },
+        series: [{
+            name: "Nezgode",
+            data: selectedTypes.map((tip) => ({
+                y: counts[tip] || 0,
+                color: damageColors[tip] || "#176b87",
+            })),
+        }],
+    });
+}
+
+function renderAccidentTypeChart(data) {
+    setChartVisible("chart-vrsta", true);
+    const counts = countBy(data, "vrsta_nezgode");
+    const seriesData = topEntries(counts, 5).map(([name, y]) => ({ name, y }));
+
+    Highcharts.chart("chart-vrsta", {
+        chart: { type: "pie", backgroundColor: "transparent" },
+        title: { text: "Vrste nezgoda" },
+        credits: { enabled: false },
+        tooltip: { pointFormat: "<b>{point.y}</b> nezgoda ({point.percentage:.1f}%)" },
+        plotOptions: {
+            pie: {
+                dataLabels: { enabled: true, format: "{point.name}: {point.y}" },
+            },
+        },
+        series: [{ name: "Nezgode", data: seriesData }],
+    });
+}
+
+function renderMunicipalityChart(data) {
+    const hasMunicipalityFilter = Boolean(getFilters().opstina);
+    setChartVisible("chart-opstine", !hasMunicipalityFilter);
+
+    if (hasMunicipalityFilter) {
+        return;
+    }
+
+    const counts = countBy(data, "opstina");
+    const entries = topEntries(counts, 10).reverse();
+
+    Highcharts.chart("chart-opstine", {
+        chart: { type: "bar", backgroundColor: "transparent" },
+        title: { text: "Top opstine po broju nezgoda" },
+        xAxis: { categories: entries.map(([name]) => name), title: { text: null } },
+        yAxis: { title: { text: "Broj nezgoda" }, allowDecimals: false },
+        legend: { enabled: false },
+        credits: { enabled: false },
+        series: [{ name: "Nezgode", data: entries.map(([, value]) => value), color: "#176b87" }],
+    });
+}
+
+function setChartVisible(containerId, visible) {
+    const card = document.getElementById(containerId)?.closest(".chart-card");
+
+    if (card) {
+        card.classList.toggle("is-hidden", !visible);
+    }
+}
+
+function setChartWide(containerId, wide) {
+    const card = document.getElementById(containerId)?.closest(".chart-card");
+
+    if (card) {
+        card.classList.toggle("chart-card-wide", wide);
+    }
+}
+
+function countByYearAndMonth(data) {
+    return data.reduce((accumulator, item) => {
+        const year = Number(item.godina);
+        const month = getMonthFromDatum(item.datum_vreme);
+
+        if (!year || !month) {
+            return accumulator;
+        }
+
+        accumulator[year] = accumulator[year] || {};
+        accumulator[year][month] = (accumulator[year][month] || 0) + 1;
+        return accumulator;
+    }, {});
+}
+
+function getMonthFromDatum(value) {
+    const match = String(value || "").match(/^\d{2}\.(\d{2})\.\d{4}/);
+    return match ? Number(match[1]) : null;
+}
+
+function countBy(data, key) {
+    return data.reduce((accumulator, item) => {
+        const value = item[key] || "Nepoznato";
+        accumulator[value] = (accumulator[value] || 0) + 1;
+        return accumulator;
+    }, {});
+}
+
+function topEntries(counts, limit) {
+    return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, limit);
 }

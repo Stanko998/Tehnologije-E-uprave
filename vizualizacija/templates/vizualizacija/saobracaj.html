@@ -66,11 +66,34 @@
 
   <div id="map"></div>
 </section>
+
+<section class="charts-section" aria-label="Grafikoni saobracajnih nezgoda">
+  <div class="section-title">
+    <p class="eyebrow">Analitika</p>
+    <h2>Grafikoni za izabrani filter</h2>
+  </div>
+
+  <div class="chart-grid">
+    <article class="chart-card chart-card-wide">
+      <div id="chart-godine" class="chart-container"></div>
+    </article>
+    <article class="chart-card">
+      <div id="chart-tip-stete" class="chart-container"></div>
+    </article>
+    <article class="chart-card">
+      <div id="chart-vrsta" class="chart-container"></div>
+    </article>
+    <article class="chart-card chart-card-wide">
+      <div id="chart-opstine" class="chart-container"></div>
+    </article>
+  </div>
+</section>
 {% endblock%}
 
 {% block scripts%}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/leaflet.featuregroup.subgroup@1.0.2/dist/leaflet.featuregroup.subgroup.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="{% static 'js/saobracaj.js' %}"></script>
 {% endblock %}

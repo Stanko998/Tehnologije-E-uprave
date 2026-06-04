@@ -46,7 +46,15 @@ def saobracajApi(request):
         df = df[df["tip_stete"].isin(tipovi_stete)]
 
     data = df[
-        ["latitude", "longitude", "tip_stete", "vrsta_nezgode", "datum_vreme", "opstina"]
+        [
+            "latitude",
+            "longitude",
+            "tip_stete",
+            "vrsta_nezgode",
+            "datum_vreme",
+            "opstina",
+            "godina",
+        ]
     ].to_dict(orient="records")
     return JsonResponse(data, safe=False, json_dumps_params={"separators": (",", ":")})
 

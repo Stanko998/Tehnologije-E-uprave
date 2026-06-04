@@ -4,7 +4,6 @@ from functools import lru_cache
 import pandas as pd
 from django.conf import settings
 
-
 SAOBRACAJ_MIN_GODINA = 2015
 SAOBRACAJ_MAX_GODINA = 2026
 
@@ -15,11 +14,8 @@ def _normalizuj_koordinate(df):
 
     df.loc[df["longitude"].abs() > 180, "longitude"] /= 1_000_000
     df.loc[df["latitude"].abs() > 90, "latitude"] /= 1_000_000
-
-    return df[
-        df["longitude"].between(18, 24)
-        & df["latitude"].between(42, 47)
-    ]
+    # BUG za 2024 nisu sve kordniate u milionima neka su manje neke su vece
+    return df[df["longitude"].between(18, 24) & df["latitude"].between(42, 47)]
 
 
 @lru_cache(maxsize=32)
