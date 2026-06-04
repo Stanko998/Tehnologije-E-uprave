@@ -270,18 +270,17 @@ function renderAccidentTypeChart(data) {
 
 function renderMunicipalityChart(data) {
     const hasMunicipalityFilter = Boolean(getFilters().opstina);
-    setChartVisible("chart-opstine", !hasMunicipalityFilter);
-
-    if (hasMunicipalityFilter) {
-        return;
-    }
-
-    const counts = countBy(data, "opstina");
+    const groupKey = hasMunicipalityFilter ? "policijska_uprava" : "opstina";
+    const title = hasMunicipalityFilter
+        ? "Top policijske uprave po broju nezgoda"
+        : "Top opstine po broju nezgoda";
+    setChartVisible("chart-opstine", true);
+    const counts = countBy(data, groupKey);
     const entries = topEntries(counts, 10).reverse();
 
     Highcharts.chart("chart-opstine", {
         chart: { type: "bar", backgroundColor: "transparent" },
-        title: { text: "Top opstine po broju nezgoda" },
+        title: { text: title },
         xAxis: { categories: entries.map(([name]) => name), title: { text: null } },
         yAxis: { title: { text: "Broj nezgoda" }, allowDecimals: false },
         legend: { enabled: false },

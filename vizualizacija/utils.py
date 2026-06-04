@@ -13,10 +13,27 @@ def _normalizuj_koordinate(df):
     df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
 
-    df.loc[df["longitude"].abs() > 180, "longitude"] /= 1_000_000
-    df.loc[df["latitude"].abs() > 90, "latitude"] /= 1_000_000
+    df["longitude"] = df["longitude"].apply(
+        lambda value: _normalizuj_koordinatu(value, 18, 24)
+    )
+    df["latitude"] = df["latitude"].apply(
+        lambda value: _normalizuj_koordinatu(value, 42, 47)
+    )
 
     return df[df["longitude"].between(18, 24) & df["latitude"].between(42, 47)]
+
+
+def _normalizuj_koordinatu(value, minimum, maximum):
+    if pd.isna(value):
+        return value
+
+    for exponent in range(0, 15):
+        divisor = 10**exponent
+        normalized = value / divisor
+        if minimum <= normalized <= maximum:
+            return normalized
+
+    return value
 
 
 @lru_cache(maxsize=32)
@@ -29,8 +46,8 @@ def ucitajSaobracaj(godinaOd=2015, godinaDo=2026):
 
     columns = [
         "id",
-        "policijska_uprava",
         "opstina",
+        "policijska_uprava",
         "datum_vreme",
         "longitude",
         "latitude",
@@ -74,7 +91,7 @@ def ucitajSaobracajFiltere():
                     path,
                     header=None,
                     encoding="utf-8",
-                    usecols=[2, 6],
+                    usecols=[1, 6],
                     names=["opstina", "tip_stete"],
                 )
             )

@@ -55,6 +55,7 @@ def saobracajApi(request):
             "vrsta_nezgode",
             "datum_vreme",
             "opstina",
+            "policijska_uprava",
             "godina",
         ]
     ].to_dict(orient="records")

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import OsnovnaSkola, RezultatSkole
-from .utils import ucitajSaobracaj
+from .utils import _normalizuj_koordinatu, ucitajSaobracaj
 
 
 class VizualizacijaViewsTests(TestCase):
@@ -35,6 +35,7 @@ class VizualizacijaViewsTests(TestCase):
                 "vrsta_nezgode",
                 "datum_vreme",
                 "opstina",
+                "policijska_uprava",
                 "godina",
             },
         )
@@ -45,7 +46,7 @@ class VizualizacijaViewsTests(TestCase):
             {
                 "godinaOd": "2015",
                 "godinaDo": "2015",
-                "opstina": "BARAJEVO",
+                "opstina": "BEOGRAD",
                 "tip_stete": ["Sa mat.stetom", "Sa povredjenim"],
             },
         )
@@ -53,7 +54,7 @@ class VizualizacijaViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         records = response.json()
         self.assertGreater(len(records), 0)
-        self.assertTrue(all(record["opstina"] == "BARAJEVO" for record in records))
+        self.assertTrue(all(record["opstina"] == "BEOGRAD" for record in records))
         self.assertTrue(
             all(
                 record["tip_stete"] in {"Sa mat.stetom", "Sa povredjenim"}
@@ -63,6 +64,11 @@ class VizualizacijaViewsTests(TestCase):
 
 
 class SaobracajDataTests(TestCase):
+    def test_coordinate_normalization_supports_multiple_scales(self):
+        self.assertAlmostEqual(_normalizuj_koordinatu(20409292, 18, 24), 20.409292)
+        self.assertAlmostEqual(_normalizuj_koordinatu(2041225, 18, 24), 20.41225)
+        self.assertAlmostEqual(_normalizuj_koordinatu(20255599344, 18, 24), 20.255599344)
+
     def test_2024_coordinates_are_normalized(self):
         df = ucitajSaobracaj(2024, 2024)
 
