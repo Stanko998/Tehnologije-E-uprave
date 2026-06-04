@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
+from .models import OsnovnaSkola, RezultatSkole
 from .utils import ucitajSaobracaj
 
 
@@ -70,3 +71,30 @@ class SaobracajDataTests(TestCase):
         self.assertGreater(df["longitude"].min(), 18)
         self.assertLess(df["latitude"].max(), 47)
         self.assertGreater(df["latitude"].min(), 42)
+
+
+class SkoleApiTests(TestCase):
+    def test_skole_api_returns_stats_and_results(self):
+        skola = OsnovnaSkola.objects.create(
+            okrug="Test okrug",
+            opstina="Test opstina",
+            naziv='ОШ "Тест"',
+            mesto="Test mesto",
+            latitude=44.0,
+            longitude=20.0,
+        )
+        RezultatSkole.objects.create(
+            skola=skola,
+            skolska_godina="2024/25",
+            broj_ucenika=30,
+            ukupno_poena=100.5,
+        )
+
+        response = self.client.get(reverse("skole_api"), {"godina": "2024/25"})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["stats"]["ukupno"], 1)
+        self.assertEqual(payload["stats"]["geolocirano"], 1)
+        self.assertEqual(payload["stats"]["nije_geolocirano"], 0)
+        self.assertEqual(payload["results"][0]["naziv"], 'ОШ "Тест"')

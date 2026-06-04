@@ -217,6 +217,37 @@ main {
     box-shadow: var(--shadow);
 }
 
+.stats-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto 22px;
+}
+
+.stats-strip article {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(23, 32, 51, 0.06);
+}
+
+.stats-strip span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.stats-strip strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--primary-dark);
+    font-size: 2rem;
+    line-height: 1;
+}
+
 .filter-bar {
     padding: 16px;
     border-bottom: 1px solid var(--line);
@@ -339,6 +370,12 @@ main {
     min-height: 460px;
 }
 
+#skole-map {
+    width: 100%;
+    height: min(68vh, 680px);
+    min-height: 430px;
+}
+
 .charts-section {
     margin-bottom: 54px;
 }
@@ -422,6 +459,10 @@ main {
     }
 
     .chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-strip {
         grid-template-columns: 1fr;
     }
 

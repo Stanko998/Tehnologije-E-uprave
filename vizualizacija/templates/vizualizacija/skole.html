@@ -1,19 +1,97 @@
 {% extends 'vizualizacija/base.html'%}
+{% load static %}
 
 {% block title%}&#352;kole{% endblock%}
+
+{% block style %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+{% endblock %}
 
 {% block page%}
 <section class="page-heading">
   <p class="eyebrow">Javni podaci</p>
   <h1>Osnovne &#353;kole</h1>
-  <p>Stranica je pripremljena za vizuelizaciju skupa podataka o osnovnim &#353;kolama.</p>
+  <p>Mapa i grafikoni rezultata osnovnih &#353;kola, sa statusom geolokacije za svaku ustanovu.</p>
 </section>
 
-<section class="empty-state">
-  <h2>Slede&#263;i korak</h2>
-  <p>
-    Dodati parsiranje CSV fajla, API endpoint i mapu ili tabelu sa pretragom po mestu,
-    nazivu &#353;kole i tipu ustanove.
-  </p>
+<section class="stats-strip" aria-label="Status geolokacije">
+  <article>
+    <span>Ukupno &#353;kola</span>
+    <strong id="skole-ukupno">{{ ukupno_skola }}</strong>
+  </article>
+  <article>
+    <span>Geolocirano</span>
+    <strong id="skole-geolocirano">{{ geolocirano_skola }}</strong>
+  </article>
+  <article>
+    <span>Nije geolocirano</span>
+    <strong id="skole-nije-geolocirano">{{ nije_geolocirano_skola }}</strong>
+  </article>
+</section>
+
+<section class="map-shell">
+  <form id="skole-forma" class="filter-bar">
+    <div class="field field-wide">
+      <label for="skolska_godina">&#352;kolska godina</label>
+      <select name="godina" id="skolska_godina">
+        {% for godina in godine %}
+        <option value="{{ godina }}">{{ godina }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field field-wide">
+      <label for="okrug">Okrug</label>
+      <select name="okrug" id="okrug">
+        <option value="">Svi okruzi</option>
+        {% for okrug in okruzi %}
+        <option value="{{ okrug }}">{{ okrug }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field field-wide">
+      <label for="opstina">Op&#353;tina</label>
+      <select name="opstina" id="opstina">
+        <option value="">Sve op&#353;tine</option>
+        {% for opstina in opstine %}
+        <option value="{{ opstina }}">{{ opstina }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button class="button button-primary" type="submit">Prika&#382;i</button>
+    <p id="skole-status" class="status" aria-live="polite"></p>
+  </form>
+
+  <div id="skole-map"></div>
+</section>
+
+<section class="charts-section" aria-label="Grafikoni osnovnih skola">
+  <div class="section-title">
+    <p class="eyebrow">Analitika</p>
+    <h2>Grafikoni za izabrani filter</h2>
+  </div>
+
+  <div class="chart-grid">
+    <article class="chart-card">
+      <div id="chart-skole-okruzi" class="chart-container"></div>
+    </article>
+    <article class="chart-card">
+      <div id="chart-skole-status" class="chart-container"></div>
+    </article>
+    <article class="chart-card chart-card-wide">
+      <div id="chart-skole-poeni" class="chart-container"></div>
+    </article>
+  </div>
 </section>
 {% endblock%}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="{% static 'js/highcharts.js' %}"></script>
+<script src="{% static 'js/skole.js' %}"></script>
+{% endblock %}
