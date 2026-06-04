@@ -28,6 +28,32 @@
       <input type="number" name="godinaDo" id="godinaDo" value="{{ godinaDo }}" min="2015" max="2026" />
     </div>
 
+    <div class="field field-wide">
+      <label for="opstina">Op&#353;tina</label>
+      <select name="opstina" id="opstina">
+        <option value="">Sve op&#353;tine</option>
+        {% for opstina in opstine %}
+        <option value="{{ opstina }}">{{ opstina }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field field-checks">
+      <span class="field-label">Tip &#353;tete</span>
+      <label class="check-option">
+        <input type="checkbox" name="tip_stete" value="Sa mat.stetom" checked />
+        <span><i class="dot dot-blue"></i>Materijalna &#353;teta</span>
+      </label>
+      <label class="check-option">
+        <input type="checkbox" name="tip_stete" value="Sa povredjenim" checked />
+        <span><i class="dot dot-orange"></i>Povre&#273;eni</span>
+      </label>
+      <label class="check-option">
+        <input type="checkbox" name="tip_stete" value="Sa poginulim" checked />
+        <span><i class="dot dot-red"></i>Poginuli</span>
+      </label>
+    </div>
+
     <button class="button button-primary" type="submit">Prika&#382;i</button>
     <p id="status" class="status" aria-live="polite"></p>
   </form>

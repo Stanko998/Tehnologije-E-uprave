@@ -232,7 +232,14 @@ main {
     font-weight: 800;
 }
 
-.field input {
+.field-label {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.field input,
+.field select {
     width: 132px;
     min-height: 44px;
     border: 1px solid var(--line);
@@ -241,6 +248,51 @@ main {
     color: var(--text);
     font: inherit;
     font-weight: 700;
+}
+
+.field select {
+    width: 220px;
+    background: #ffffff;
+}
+
+.field-wide {
+    min-width: 220px;
+}
+
+.field-checks {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    min-width: 360px;
+    gap: 8px;
+}
+
+.field-checks .field-label {
+    width: 100%;
+}
+
+.check-option {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.check-option input {
+    width: 16px;
+    min-height: 16px;
+    margin: 0 8px 0 0;
+    accent-color: var(--primary);
+}
+
+.check-option span {
+    display: inline-flex;
+    align-items: center;
 }
 
 .status {
@@ -330,7 +382,13 @@ main {
     .filter-bar,
     .field,
     .field input,
+    .field select,
+    .field-checks,
     .filter-bar .button {
+        width: 100%;
+    }
+
+    .check-option {
         width: 100%;
     }
 

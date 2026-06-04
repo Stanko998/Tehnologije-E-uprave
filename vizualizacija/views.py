@@ -1,7 +1,12 @@
 from django.views.decorators.cache import cache_control
 from django.shortcuts import render
 from django.http import JsonResponse
-from .utils import SAOBRACAJ_MAX_GODINA, SAOBRACAJ_MIN_GODINA, ucitajSaobracaj
+from .utils import (
+    SAOBRACAJ_MAX_GODINA,
+    SAOBRACAJ_MIN_GODINA,
+    ucitajSaobracaj,
+    ucitajSaobracajFiltere,
+)
 
 
 def home(request):
@@ -9,7 +14,11 @@ def home(request):
 
 
 def saobracaj(request):
-    context = {"godinaOd": SAOBRACAJ_MIN_GODINA, "godinaDo": SAOBRACAJ_MIN_GODINA}
+    context = {
+        "godinaOd": SAOBRACAJ_MIN_GODINA,
+        "godinaDo": SAOBRACAJ_MIN_GODINA,
+        **ucitajSaobracajFiltere(),
+    }
     return render(request, "vizualizacija/saobracaj.html", context)
 
 
@@ -27,10 +36,18 @@ def saobracajApi(request):
     if godinaOd > godinaDo:
         godinaOd, godinaDo = godinaDo, godinaOd
     df = ucitajSaobracaj(godinaOd, godinaDo)
+    opstina = request.GET.get("opstina", "").strip()
+    tipovi_stete = [tip for tip in request.GET.getlist("tip_stete") if tip]
 
-    data = df[["latitude", "longitude", "tip_stete", "datum_vreme", "opstina"]].to_dict(
-        orient="records"
-    )
+    if opstina:
+        df = df[df["opstina"] == opstina]
+
+    if tipovi_stete:
+        df = df[df["tip_stete"].isin(tipovi_stete)]
+
+    data = df[
+        ["latitude", "longitude", "tip_stete", "vrsta_nezgode", "datum_vreme", "opstina"]
+    ].to_dict(orient="records")
     return JsonResponse(data, safe=False, json_dumps_params={"separators": (",", ":")})
 
 

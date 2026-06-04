@@ -18,30 +18,38 @@ map.addLayer(markers);
 L.control.layers({ OpenStreetMap: osm }, { "Saobracajne nezgode": markers }, { position: "topleft" }).addTo(map);
 
 const buffer = {};
+const activeLayers = new Set();
 
-setStatus("Izaberi period i klikni Prikazi.");
-
-loadData(2015, 2015)
+loadInitialData();
 
 function setStatus(message) {
     statusEl.textContent = message;
 }
 
-function loadData(godinaOd, godinaDo) {
+function loadInitialData() {
+    const godinaOd = parseInt(document.getElementById("godinaOd").value, 10);
+    const godinaDo = parseInt(document.getElementById("godinaDo").value, 10);
+    loadData(godinaOd, godinaDo, getFilters());
+}
+
+function loadData(godinaOd, godinaDo, filters) {
     setStatus("Ucitavanje podataka...");
 
     const requests = [];
     for (let godina = godinaOd; godina <= godinaDo; godina += 1) {
-        if (buffer[godina]) {
-            if (!map.hasLayer(buffer[godina])) {
-                map.addLayer(buffer[godina]);
+        const cacheKey = getCacheKey(godina, filters);
+
+        if (buffer[cacheKey]) {
+            if (!map.hasLayer(buffer[cacheKey])) {
+                map.addLayer(buffer[cacheKey]);
+                activeLayers.add(cacheKey);
             }
             continue;
         }
 
-        buffer[godina] = L.featureGroup.subGroup(markers);
+        buffer[cacheKey] = L.featureGroup.subGroup(markers);
         requests.push(
-            fetch(`/api/saobracaj/?godinaOd=${godina}&godinaDo=${godina}`)
+            fetch(getApiUrl(godina, filters))
                 .then((response) => {
                     if (!response.ok) {
                         throw new Error(`Greska pri ucitavanju godine ${godina}`);
@@ -54,28 +62,74 @@ function loadData(godinaOd, godinaDo) {
                         marker.bindPopup(`
                             <b>Datum:</b> ${point.datum_vreme}<br>
                             <b>Opstina:</b> ${point.opstina}<br>
+                            <b>Tip:</b> ${point.vrsta_nezgode}<br>
                             <b>Steta:</b> ${point.tip_stete}
                         `);
-                        buffer[godina].addLayer(marker);
+                        buffer[cacheKey].addLayer(marker);
                     });
 
-                    map.addLayer(buffer[godina]);
+                    map.addLayer(buffer[cacheKey]);
+                    activeLayers.add(cacheKey);
                 })
         );
     }
 
     Promise.all(requests)
-        .then(() => setStatus(`Prikazan period ${godinaOd}-${godinaDo}.`))
+        .then(() => {
+            fitMapToActiveLayers();
+            setStatus(`Prikazan period ${godinaOd}-${godinaDo}.`);
+        })
         .catch((error) => setStatus(error.message));
 }
 
-function removeLayers(godinaOd, godinaDo) {
-    Object.keys(buffer).forEach((key) => {
-        const godina = parseInt(key, 10);
-        if (godina < godinaOd || godina > godinaDo) {
-            map.removeLayer(buffer[godina]);
-        }
+function getFilters() {
+    return {
+        opstina: document.getElementById("opstina").value,
+        tipoviStete: Array.from(document.querySelectorAll('input[name="tip_stete"]:checked'))
+            .map((input) => input.value),
+    };
+}
+
+function getApiUrl(godina, filters) {
+    const params = new URLSearchParams({
+        godinaOd: godina,
+        godinaDo: godina,
     });
+
+    if (filters.opstina) {
+        params.set("opstina", filters.opstina);
+    }
+
+    filters.tipoviStete.forEach((tip) => params.append("tip_stete", tip));
+
+    return `/api/saobracaj/?${params.toString()}`;
+}
+
+function getCacheKey(godina, filters) {
+    return [godina, filters.opstina, filters.tipoviStete.join(",")].join("|");
+}
+
+function removeActiveLayers() {
+    activeLayers.forEach((key) => {
+        map.removeLayer(buffer[key]);
+    });
+    activeLayers.clear();
+}
+
+function fitMapToActiveLayers() {
+    const bounds = L.latLngBounds([]);
+
+    activeLayers.forEach((key) => {
+        buffer[key].eachLayer((layer) => {
+            if (layer.getLatLng) {
+                bounds.extend(layer.getLatLng());
+            }
+        });
+    });
+
+    if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [28, 28], maxZoom: 13 });
+    }
 }
 
 document.getElementById("forma").addEventListener("submit", function (e) {
@@ -88,8 +142,14 @@ document.getElementById("forma").addEventListener("submit", function (e) {
         [godinaOd, godinaDo] = [godinaDo, godinaOd];
     }
 
-    removeLayers(godinaOd, godinaDo);
-    loadData(godinaOd, godinaDo);
+    if (getFilters().tipoviStete.length === 0) {
+        removeActiveLayers();
+        setStatus("Izaberi bar jedan tip stete.");
+        return;
+    }
+
+    removeActiveLayers();
+    loadData(godinaOd, godinaDo, getFilters());
 });
 
 function getMarkerStyle(tip) {

@@ -27,7 +27,36 @@ class VizualizacijaViewsTests(TestCase):
         first_record = response.json()[0]
         self.assertEqual(
             set(first_record),
-            {"latitude", "longitude", "tip_stete", "datum_vreme", "opstina"},
+            {
+                "latitude",
+                "longitude",
+                "tip_stete",
+                "vrsta_nezgode",
+                "datum_vreme",
+                "opstina",
+            },
+        )
+
+    def test_saobracaj_api_filters_by_opstina_and_tip_stete(self):
+        response = self.client.get(
+            reverse("saobracaj_api"),
+            {
+                "godinaOd": "2015",
+                "godinaDo": "2015",
+                "opstina": "BARAJEVO",
+                "tip_stete": ["Sa mat.stetom", "Sa povredjenim"],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        records = response.json()
+        self.assertGreater(len(records), 0)
+        self.assertTrue(all(record["opstina"] == "BARAJEVO" for record in records))
+        self.assertTrue(
+            all(
+                record["tip_stete"] in {"Sa mat.stetom", "Sa povredjenim"}
+                for record in records
+            )
         )
 
 

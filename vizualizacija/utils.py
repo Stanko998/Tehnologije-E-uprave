@@ -60,3 +60,34 @@ def ucitajSaobracaj(godinaOd=2015, godinaDo=2026):
         return pd.DataFrame(columns=columns + ["godina"])
 
     return pd.concat(dfList, ignore_index=True)
+
+
+@lru_cache(maxsize=1)
+def ucitajSaobracajFiltere():
+    folder = os.path.join(
+        settings.BASE_DIR, "vizualizacija", "data", "saobracajne_nesrece"
+    )
+    dfList = []
+
+    for godina in range(SAOBRACAJ_MIN_GODINA, SAOBRACAJ_MAX_GODINA + 1):
+        path = os.path.join(folder, f"nez-opendata-{godina}.csv")
+
+        if os.path.exists(path):
+            dfList.append(
+                pd.read_csv(
+                    path,
+                    header=None,
+                    encoding="utf-8",
+                    usecols=[2, 6],
+                    names=["opstina", "tip_stete"],
+                )
+            )
+
+    if not dfList:
+        return {"opstine": [], "tipovi_stete": []}
+
+    df = pd.concat(dfList, ignore_index=True)
+    return {
+        "opstine": sorted(df["opstina"].dropna().unique().tolist()),
+        "tipovi_stete": sorted(df["tip_stete"].dropna().unique().tolist()),
+    }
